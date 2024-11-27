@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCCN - Sistema para Cálculo de la Calidad del Néctar</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-image: url("https://cdn.pixabay.com/photo/2017/09/26/13/21/apple-2788662_1280.jpg");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 400px;
+    }
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-size: 18px;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4caf50;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+    .warning {
+      margin-top: 20px;
+      font-size: 16px;
+      color: red;
+      font-weight: bold;
+      border: 1px solid red;
+      padding: 10px;
+      background-color: #ffd4d4;
+      border-radius: 5px;
+    }
+    .priority, .new-lot {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #8a6d3b;
+      font-weight: bold;
+      border: 1px solid #8a6d3b;
+      padding: 10px;
+      background-color: #fcf8e3;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SCCN - Sistema para Cálculo de la Calidad del Néctar</h1>
+    <div class="form-group">
+      <label for="time">Ingresa el tiempo (en horas):</label>
+      <input type="number" id="time" placeholder="Por ejemplo: 1.5">
+    </div>
+    <button onclick="calculateQuality()">Calcular Calidad</button>
+    <div id="result" class="result"></div>
+    <div id="warning" class="warning" style="display: none;">
+      El producto no es apto para procesar, contacte a encargado de planta.
+    </div>
+    <div id="priority" class="priority" style="display: none;">
+      Este lote debe ser usado con prioridad.
+    </div>
+    <div id="new-lot" class="new-lot" style="display: none;">
+      Este lote es nuevo, use uno más antiguo.
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      { time: 0, quality: 100 },
+      { time: 4, quality: 99 },
+      { time: 12, quality: 97 },
+      { time: 24, quality: 93 },
+    ];
+
+    function calculateQuality() {
+      const timeInput = document.getElementById("time").value;
+      const time = parseFloat(timeInput);
+
+      const resultElement = document.getElementById("result");
+      const warningElement = document.getElementById("warning");
+      const priorityElement = document.getElementById("priority");
+      const newLotElement = document.getElementById("new-lot");
+
+      if (isNaN(time) || time < 0) {
+        resultElement.innerHTML = "Por favor, ingresa un tiempo válido.";
+        resultElement.style.color = "red";
+        warningElement.style.display = "none";
+        priorityElement.style.display = "none";
+        newLotElement.style.display = "none";
+        return;
+      }
+
+      // Interpolación lineal para calcular la calidad
+      let T1 = data[0],
+        T2 = data[data.length - 1];
+
+      for (let i = 0; i < data.length - 1; i++) {
+        if (data[i].time <= time && data[i + 1].time >= time) {
+          T1 = data[i];
+          T2 = data[i + 1];
+          break;
+        }
+      }
+
+      const interpolatedQuality =
+        T1.quality +
+        ((T2.quality - T1.quality) * (time - T1.time)) / (T2.time - T1.time);
+
+      const quality = interpolatedQuality.toFixed(2);
+      resultElement.innerHTML = `La calidad estimada después de ${time} horas es: ${quality}%.`;
+      resultElement.style.color = "#333";
+
+      // Ocultar todos los mensajes de advertencia al inicio
+      warningElement.style.display = "none";
+      priorityElement.style.display = "none";
+      newLotElement.style.display = "none";
+
+      // Mostrar mensajes según la calidad
+      if (quality < 85) {
+        warningElement.style.display = "block";
+      } else if (quality >= 85 && quality <= 90) {
+        priorityElement.style.display = "block";
+      } else if (quality >= 95 && quality <= 100) {
+        newLotElement.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
